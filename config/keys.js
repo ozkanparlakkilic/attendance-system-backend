@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const connectDB = async () => {
-  const mongoDbUrl = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.b1oou.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
+  const mongoDbUrl = process.env.MONGO_URI;
   try {
     const conn = await mongoose.connect(mongoDbUrl, {
       useUnifiedTopology: true,
