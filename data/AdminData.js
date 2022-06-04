@@ -1,10 +1,10 @@
-import bcrypt from 'bcryptjs'
+import bcrypt from "bcryptjs";
 const admins = [
   {
-    empId: 'EMPADMIN',
-    fullName: 'Ramkrishna Murthy',
-    email: 'r.murthy@gmail.com',
-    password: bcrypt.hashSync('123456', 10),
+    empId: "EMPADMIN1",
+    fullName: "Ramkrishna Murthy",
+    email: "r.murthy@gmail.com",
+    password: bcrypt.hashSync("123456", 10),
   },
 ];
 
