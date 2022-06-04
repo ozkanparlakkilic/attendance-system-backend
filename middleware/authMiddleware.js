@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import Admin from "../models/adminModel.js";
 import Teacher from "../models/teacherModel.js";
-import { process } from "uniqid";
 
 const protect = asyncHandler(async (req, res, next) => {
   let token;
