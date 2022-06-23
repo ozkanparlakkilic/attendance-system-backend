@@ -1,80 +1,149 @@
-import asyncHandler from 'express-async-handler';
-import mongoose from 'mongoose';
-import Attendance from '../models/attendanceModel.js';
+import asyncHandler from "express-async-handler";
+import mongoose from "mongoose";
+import Attendance from "../models/attendanceModel.js";
+import Student from "../models/studentModel.js";
 
-// @route   POST /api/attendance/register
-// @access  Private/Admin
-const enterAttendance = asyncHandler(async (req, res) => {
-	const { classId, absent } = req.body;
-	const attendance = new Attendance({
-		classId: classId,
-		absent: absent
-	});
-	const createdAttendance = await attendance.save();
-	if (createdAttendance) {
-		res.status(201).json({
-			createdAttendance
-		});
-	} else {
-		res.status(400);
-		throw new Error('Invalid attendance data');
-	}
+// @route   POST /api/attendance/start
+const startAttendance = asyncHandler(async (req, res) => {
+  const { classId } = req.body;
+
+  const attendance = await Attendance.create({
+    classId: classId,
+    absent: [],
+    isOnline: true,
+  });
+
+  const createdAttendance = await attendance.save();
+  if (createdAttendance) {
+    res.status(201).json({
+      createdAttendance,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Invalid attendance data");
+  }
 });
 
-// @route   PUT /api/attendance/register/:id
-// @access  Private/Admin
+// @route   PUT /api/attendance/add/
 const updateAttendance = asyncHandler(async (req, res) => {
-	const { absent } = req.body;
+  const { attendanceId, student } = req.body;
+  try {
+    const isStudentInAbsent = await Attendance.findOne({
+      _id: attendanceId,
+      absent: { $in: [student._id] },
+    });
 
-	const attendance = await Attendance.findById(req.params.id);
-	if (attendance) {
-		attendance.absent = absent;
-		const createdAttendance = await attendance.save();
-		if (createdAttendance) {
-			res.status(201).json({
-				createdAttendance
-			});
-		} else {
-			res.status(400);
-			throw new Error('Invalid attendance data');
-		}
-	} else {
-		throw new Error('Attendance Document not found');
-	}
+    if (!isStudentInAbsent) {
+      const attendance = await Attendance.findByIdAndUpdate(
+        attendanceId,
+        {
+          $push: { absent: student },
+        },
+        { new: true }
+      );
+      res.status(201).send(attendance);
+      return;
+    }
+    res.status(400).send({ error: "Student already taken attendance" });
+  } catch (e) {
+    console.log(e);
+    res.sendStatus(500);
+  }
 });
 
-// @route   GET /api/attendance/byClass/:class_id
+// @route   PUT /api/attendance/finish/
+const finishAttendance = asyncHandler(async (req, res) => {
+  const { classId } = req.body;
+
+  const attendance = await Attendance.findOneAndUpdate(
+    {
+      classId: classId,
+      isOnline: true,
+    },
+    { isOnline: false },
+    { new: true }
+  );
+
+  const createdAttendance = await attendance.save();
+  if (createdAttendance) {
+    res.status(201).json({
+      createdAttendance,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Invalid attendance data");
+  }
+});
+
+// @route   GET /api/attendance/:id
 // @access  Private
-const getAttendanceByClass = asyncHandler(async (req, res) => {
-	const attendance = await Attendance.find({ classId: req.params.class_id }).sort({ createdAt: 'desc' });
+const getAttendanceByClassId = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-	if (attendance) {
-		res.json({
-			attendance
-		});
-	} else {
-		res.status(404);
-		throw new Error('Student not found');
-	}
+  const attendance = await Attendance.findOne({
+    classId: id,
+    isOnline: true,
+  });
+
+  if (attendance) {
+    res.json({
+      attendance,
+    });
+  } else {
+    res.status(404);
+    throw new Error("Attendance not found");
+  }
 });
 
-// @route   GET /api/attendance/byClass/lm/:class_id
-// @access  Private
-const getAttendanceLimited = asyncHandler(async (req, res) => {
-	const attendance = await Attendance.find({
-		classId: req.params.class_id
-	})
-		.sort({ createdAt: 'desc' })
-		.limit(20);
+// // @route   GET /api/attendance/classIdArr=id1_id2_id_3
+// // @access  Private
+const getAttendanceByClasses = asyncHandler(async (req, res) => {
+  const { classIdArr } = req.query;
 
-	if (attendance) {
-		res.json({
-			attendance
-		});
-	} else {
-		res.status(404);
-		throw new Error('Student not found');
-	}
+  const attendance = await Attendance.find({
+    classId: { $in: classIdArr.split("_") },
+    isOnline: false,
+  })
+    .sort({ createdAt: "asc" })
+    .exec();
+
+  if (attendance) {
+    res.json({
+      attendance,
+    });
+  } else {
+    res.status(404);
+    throw new Error("Attendance not found");
+  }
 });
 
-export { enterAttendance, getAttendanceByClass, getAttendanceLimited, updateAttendance };
+// // @route   GET /api/attendance/students?classIdArr=id1_id2_id_3
+const getAttendanceByClassIdWithStudents = asyncHandler(async (req, res) => {
+  const { classIdArr } = req.query;
+
+  const attendance = await Attendance.find({
+    classId: { $in: classIdArr.split("_") },
+    isOnline: false,
+  })
+    .populate("absent")
+    .sort({ createdAt: "asc" })
+    .exec();
+
+  if (attendance) {
+    res.json({
+      attendance,
+    });
+  } else {
+    res.status(404);
+    throw new Error("Attendance not found");
+  }
+});
+
+export {
+  startAttendance,
+  getAttendanceByClasses,
+  getAttendanceByClassId,
+  getAttendanceByClassIdWithStudents,
+  updateAttendance,
+  finishAttendance,
+};

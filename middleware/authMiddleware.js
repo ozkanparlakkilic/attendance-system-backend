@@ -2,10 +2,10 @@ import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import Admin from "../models/adminModel.js";
 import Teacher from "../models/teacherModel.js";
+import Student from "../models/studentModel.js";
 
 const protect = asyncHandler(async (req, res, next) => {
   let token;
-
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -13,13 +13,14 @@ const protect = asyncHandler(async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
 
-      const decoded = jwt.verify(token, "secret");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       console.log(decoded);
 
       let userData =
         (await Admin.findById(decoded.id).select("-password")) ||
-        (await Teacher.findById(decoded.id).select("-password"));
+        (await Teacher.findById(decoded.id).select("-password")) ||
+        (await Student.findById(decoded.id).select("-password"));
       if (!userData) {
         res.status(401);
         throw new Error("Not authorized, Not Admin");

@@ -1,7 +1,7 @@
-import asyncHandler from 'express-async-handler';
-import generateToken from '../utils/generateToken.js';
-import Teacher from '../models/teacherModel.js';
-import bcrypt from 'bcryptjs';
+import asyncHandler from "express-async-handler";
+import generateToken from "../utils/generateToken.js";
+import Teacher from "../models/teacherModel.js";
+import bcrypt from "bcryptjs";
 // @route   POST /api/teacher/login
 // @access  Public
 const authTeacher = asyncHandler(async (req, res) => {
@@ -11,23 +11,24 @@ const authTeacher = asyncHandler(async (req, res) => {
   if (teacher && (await teacher.matchPassword(password))) {
     res.json({
       token: generateToken(teacher._id),
+      user: teacher,
     });
   } else {
     res.status(401);
-    throw new Error('Invalid email or password');
+    throw new Error("Invalid email or password");
   }
 });
 
 // @route   POST /api/teacher/register
 // @access  Private/Admin
 const registerTeacher = asyncHandler(async (req, res) => {
-  const { empId, email, fullName, password,classes } = req.body;
+  const { empId, email, fullName, password, classes } = req.body;
 
   const teacherExists = await Teacher.findOne({ email });
 
   if (teacherExists) {
     res.status(400);
-    throw new Error('User already exists');
+    throw new Error("User already exists");
   }
 
   const teacher = await Teacher.create({
@@ -45,26 +46,26 @@ const registerTeacher = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(400);
-    throw new Error('Invalid user data');
+    throw new Error("Invalid user data");
   }
 });
 
 // @route   GET /api/teacher/:id
 // @access  Private/Admin
 const getTeachers = asyncHandler(async (req, res) => {
-  const teachers = await Teacher.find({}).populate('admin', 'empId fullname');
+  const teachers = await Teacher.find({}).populate("admin", "empId fullname");
   res.json(teachers);
 });
 
 // @route   Get /api/teacher/profile
 // @access  Private
 const getTeacherDetails = asyncHandler(async (req, res) => {
-  const teacher = await Teacher.findById(req.teacher._id).select('-password');
+  const teacher = await Teacher.findById(req.teacher._id).select("-password");
   if (teacher) {
     res.json(teacher);
   } else {
     res.status(404);
-    throw new Error('Teacher not Found');
+    throw new Error("Teacher not Found");
   }
 });
 
@@ -82,7 +83,7 @@ const updatePassword = asyncHandler(async (req, res) => {
     res.json(updatedPassword);
   } else {
     res.status(404);
-    throw new Error('Teacher not found');
+    throw new Error("Teacher not found");
   }
 });
 
@@ -90,8 +91,8 @@ const updatePassword = asyncHandler(async (req, res) => {
 // @access  Private
 const getTeacherProfile = asyncHandler(async (req, res) => {
   const teacher = await Teacher.findById(req.params.id).populate(
-    'admin',
-    'empId fullName'
+    "admin",
+    "empId fullName"
   );
 
   if (teacher) {
@@ -100,7 +101,7 @@ const getTeacherProfile = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(404);
-    throw new Error('Teacher not found');
+    throw new Error("Teacher not found");
   }
 });
 
@@ -111,10 +112,10 @@ const deletedTeacher = asyncHandler(async (req, res) => {
 
   if (teacher) {
     await teacher.remove();
-    res.json({ message: 'Teacher removed by admin' });
+    res.json({ message: "Teacher removed by admin" });
   } else {
     res.status(404);
-    throw new Error('Teacher not found');
+    throw new Error("Teacher not found");
   }
 });
 

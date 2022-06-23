@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const classSchema = mongoose.Schema({
   classId: {
@@ -24,6 +24,6 @@ const classSchema = mongoose.Schema({
   },
 });
 
-const Class = mongoose.model('class', classSchema);
+const Class = mongoose.model("class", classSchema);
 
 export default Class;

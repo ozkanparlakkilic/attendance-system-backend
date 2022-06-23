@@ -1,16 +1,20 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
 import {
-	enterAttendance,
-	getAttendanceByClass,
-	getAttendanceLimited,
-	updateAttendance
-} from '../controllers/attendanceController.js';
-import { protect, admin, teacher } from '../middleware/authMiddleware.js';
+  finishAttendance,
+  getAttendanceByClasses,
+  getAttendanceByClassId,
+  getAttendanceByClassIdWithStudents,
+  startAttendance,
+  updateAttendance,
+} from "../controllers/attendanceController.js";
+import { protect, admin, teacher } from "../middleware/authMiddleware.js";
 
-router.route('/register').post(protect, enterAttendance);
-router.get('/test', (req, res) => res.json({ msg: 'Users Works' }));
-router.route('/byClass/:class_id').get(protect, teacher, getAttendanceByClass);
-router.route('/byClass/lm/:class_id').get(protect, teacher, getAttendanceLimited);
-router.route('/:id').put(protect, updateAttendance);
+router.route("/start").post(teacher, startAttendance);
+router.route("/add").put(protect, updateAttendance);
+router.route("/finish").put(teacher, finishAttendance);
+
+router.route("/students").get(teacher, getAttendanceByClassIdWithStudents);
+router.route("/:id").get(protect, getAttendanceByClassId);
+router.route("/").get(protect, getAttendanceByClasses);
 export default router;
